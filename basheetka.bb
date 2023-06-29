@@ -100,17 +100,27 @@
   (let [{:keys [name result]} (tasks/current-task)]
     (swap! state assoc name result)))
 
-;;; Create initial bb.edn
+;;; Create initial bb.edn (added overwrite existing with --force option)
 
-(defn init [_]
-  (println "Initialising bb.edn...")
-  (bb-edn-write initial-bb-edn))
+(defn init [{:keys [opts]}]
+  (let [bb-exists? (.exists (io/file *bb-edn-file*))
+        force? (:force opts)]
+    (when (and (not force?) bb-exists?)
+      (print "bb.edn file already exists. Do you want to overwrite? [y/n] ")
+      (flush)
+      (let [response (read-line)]
+        (when (not= (clojure.string/lower-case response) "y")
+          (println "Using existing bb.edn")        
+          (System/exit 0))))
+  
+    (if bb-exists? (println "Overwriting bb.edn") (println "Initializing bb.edn"))
+    (bb-edn-write initial-bb-edn)))
 
 (defn help [_]
-  (println  "Usage: ./basheetka.bb init"))
+  (println  "Usage: ./basheetka.bb init [optional] --force"))
 
-(def cmd-table [{:cmds ["init"] :fn #'init}
-                {:cmds []       :fn #'help}])
+(def cmd-table [{:cmds ["init"] :fn init :args->opts [:force]}
+                {:cmds [] :fn help}])
 
 (defn -main [& args]
   (cli/dispatch cmd-table args))
