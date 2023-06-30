@@ -109,7 +109,7 @@
       (print "bb.edn file already exists. Do you want to overwrite? [y/n] ")
       (flush)
       (let [response (read-line)]
-        (when (not= (clojure.string/lower-case response) "y")
+        (when (not= (str/lower-case response) "y")
           (println "Using existing bb.edn")        
           (System/exit 0))))
   
