@@ -117,7 +117,7 @@
     (bb-edn-write initial-bb-edn)))
 
 (defn help [_]
-  (println  "Usage: ./basheetka.bb init [optional] --force"))
+  (println  "Usage: ./basheetka.bb init [--force]"))
 
 (def cmd-table [{:cmds ["init"] :fn init :args->opts [:force]}
                 {:cmds [] :fn help}])
