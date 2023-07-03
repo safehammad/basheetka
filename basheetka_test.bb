@@ -74,13 +74,45 @@
 ;;; Round trip test with basheetka.bb and bb tasks
 
 (deftest round-trip-test
-  (testing  "Ensure the bb (babashka) binary is in the PATH."
+  (testing "Ensure the bb (babashka) binary is in the PATH."
     (is (fs/which "bb")))
   (testing "Round trip basheetka operations."
     (fs/with-temp-dir [tmp-dir {}]
       (fs/copy "basheetka.bb" tmp-dir)
-      (shell {:dir (str tmp-dir)} "bb" "basheetka.bb" "init")
-      (is (= bs/initial-bb-edn (edn/read-string (slurp (str (fs/path tmp-dir bs/*bb-edn-file*))))))
+
+      (let [bb-edn-file-path (str (fs/path tmp-dir bs/*bb-edn-file*))]
+        ;; Test when bb.edn doesn't exist initially
+        (is (not (fs/exists? bb-edn-file-path)))
+
+        ;; Create bb.edn if it doesn't exist
+        (let [output (-> (shell {:dir (str tmp-dir) :out :string} "bb" "basheetka.bb" "init") :out)
+              bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
+          (is (str/includes? output "Initializing bb.edn"))
+          (is (= bs/initial-bb-edn bb-edn-content))
+          ;; Check that bb.edn is created
+          (is (fs/exists? bb-edn-file-path)))
+
+        ;; Test overwriting the bb.edn file with --force
+        (let [output (-> (shell {:dir (str tmp-dir) :out :string} "bb" "basheetka.bb" "init" "--force") :out)
+              bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
+          (is (str/includes? output "Overwriting bb.edn"))
+          (is (= bs/initial-bb-edn bb-edn-content)))
+
+        ;; Test overwriting the bb.edn file with 'y' input to prompt
+        (let [input "y\n" ;; Simulate "y" as input
+              output (-> (shell {:dir (str tmp-dir) :in input :out :string} "bb" "basheetka.bb" "init") :out)
+              bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
+          (is (str/includes? output "Overwriting bb.edn"))
+          (is (= bs/initial-bb-edn bb-edn-content)))
+
+        ;; Test not overwriting the bb.edn file with 'n' input to prompt
+        (let [input "n\n" ; Simulate "n" as input
+              existing-bb-edn (edn/read-string (slurp bb-edn-file-path))
+              output (-> (shell {:dir (str tmp-dir) :in input :out :string} "bb" "basheetka.bb" "init") :out)
+              bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
+          (is (str/includes? output "Using existing bb.edn"))
+          (is (= existing-bb-edn bb-edn-content))))
+
       (spit (str (fs/path tmp-dir "in.csv")) "5,6,(+ A1 B1 7)\n1,2,3")
       (shell {:dir (str tmp-dir)} "bb" "import" "in.csv")
       (shell {:dir (str tmp-dir)} "bb" "export" "out.csv")
