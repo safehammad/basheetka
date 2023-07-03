@@ -110,10 +110,10 @@
       (flush)
       (let [response (read-line)]
         (when (not= (str/lower-case response) "y")
-          (println "Using existing bb.edn")        
+          (println "Using existing bb.edn")
           (System/exit 0))))
-  
-    (if bb-exists? (println "Overwriting bb.edn") (println "Initializing bb.edn"))
+
+    (println (if bb-exists? "Overwriting bb.edn" "Initializing bb.edn"))
     (bb-edn-write initial-bb-edn)))
 
 (defn help [_]
