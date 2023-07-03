@@ -20,7 +20,11 @@ Alternatively, you can clone the entire repo which, in addition to `basheetka.bb
 
     $ bb basheetka.bb init
 
-Beware that any existing `bb.edn` file will be overwritten. This is a barebones file, an "empty spreadsheet" with some helper tasks referring to functions in `basheetka.bb`.
+This is a barebones file, an "empty spreadsheet" with some helper tasks referring to functions in `basheetka.bb`.
+
+Note that if a `bb.edn` file already exists, a prompt will ask if you want to overwrite it. If you want to overwrite an existing `bb.edn` file without being prompted, run:
+
+    $ bb basheetka.bb init --force
 
 ### 2. Import spreadsheet:
 
@@ -79,7 +83,6 @@ Run the tests as follows:
 
 ## Todo
 
-- Ask before overwriting an existing bb.edn file and provide a `--force` option to overwrite without asking.
 - Specify a config file other than `bb.edn` through a `--config` option. This is similar to the `--config` option available in `bb` (run `bb help` for more detail).
 
 ## Feature ideas
