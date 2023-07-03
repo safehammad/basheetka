@@ -85,8 +85,7 @@
         (is (not (fs/exists? bb-edn-file-path)))
 
         ;; Create bb.edn if it doesn't exist
-        (let [output (with-out-str
-                       (shell {:dir (str tmp-dir) :out *out*} "bb" "basheetka.bb" "init"))
+        (let [output (-> (shell {:dir (str tmp-dir) :out :string} "bb" "basheetka.bb" "init") :out)
               bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
           (is (str/includes? output "Initializing bb.edn"))
           (is (= bs/initial-bb-edn bb-edn-content))
@@ -94,16 +93,14 @@
           (is (fs/exists? bb-edn-file-path)))
 
         ;; Test overwriting the bb.edn file with --force
-        (let [output (with-out-str
-                       (shell {:dir (str tmp-dir) :out *out*} "bb" "basheetka.bb" "init" "--force"))
+        (let [output (-> (shell {:dir (str tmp-dir) :out :string} "bb" "basheetka.bb" "init" "--force") :out)
               bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
           (is (str/includes? output "Overwriting bb.edn"))
           (is (= bs/initial-bb-edn bb-edn-content)))
 
         ;; Test overwriting the bb.edn file with 'y' input to prompt
         (let [input "y\n" ;; Simulate "y" as input
-              output (with-out-str
-                       (shell {:dir (str tmp-dir) :in input :out *out*} "bb" "basheetka.bb" "init"))
+              output (-> (shell {:dir (str tmp-dir) :in input :out :string} "bb" "basheetka.bb" "init") :out)
               bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
           (is (str/includes? output "Overwriting bb.edn"))
           (is (= bs/initial-bb-edn bb-edn-content)))
@@ -111,8 +108,7 @@
         ;; Test not overwriting the bb.edn file with 'n' input to prompt
         (let [input "n\n" ; Simulate "n" as input
               existing-bb-edn (edn/read-string (slurp bb-edn-file-path))
-              output (with-out-str
-                       (shell {:dir (str tmp-dir) :in input :out *out*} "bb" "basheetka.bb" "init"))
+              output (-> (shell {:dir (str tmp-dir) :in input :out :string} "bb" "basheetka.bb" "init") :out)
               bb-edn-content (edn/read-string (slurp bb-edn-file-path))]
           (is (str/includes? output "Using existing bb.edn"))
           (is (= existing-bb-edn bb-edn-content))))
